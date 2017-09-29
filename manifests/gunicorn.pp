@@ -7,12 +7,6 @@
 # [*ensure*]
 #  present|absent. Default: present
 #
-# [*config_dir*]
-#  Configure the gunicorn config directory path. Default: /etc/gunicorn.d
-#
-# [*manage_config_dir*]
-#  Set if the gunicorn config directory should be created. Default: false
-#
 # [*virtualenv*]
 #  Run in virtualenv, specify directory. Default: disabled
 #
@@ -76,8 +70,6 @@
 #
 define python::gunicorn (
   $ensure            = present,
-  $config_dir        = '/etc/gunicorn.d',
-  $manage_config_dir = false,
   $virtualenv        = false,
   $mode              = 'wsgi',
   $dir               = false,
@@ -104,29 +96,12 @@ define python::gunicorn (
 
   validate_re($log_level, 'debug|info|warning|error|critical', "Invalid \$log_level value ${log_level}")
 
-  if $manage_config_dir {
-    file { $config_dir:
-      ensure => directory,
-      mode   => '0755',
-      owner  => 'root',
-      group  => 'root',
-    }
-    file { "${config_dir}/${name}":
-      ensure  => $ensure,
-      mode    => '0644',
-      owner   => 'root',
-      group   => 'root',
-      content => template($template),
-      require => File[$config_dir],
-    }
-  } else {
-    file { "${config_dir}/${name}":
-      ensure  => $ensure,
-      mode    => '0644',
-      owner   => 'root',
-      group   => 'root',
-      content => template($template),
-    }
+  file { "/etc/gunicorn.d/${name}":
+    ensure  => $ensure,
+    mode    => '0644',
+    owner   => 'root',
+    group   => 'root',
+    content => template($template),
   }
 
 }
